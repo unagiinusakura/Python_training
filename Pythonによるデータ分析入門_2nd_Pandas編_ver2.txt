@@ -1,0 +1,1671 @@
+Pythonによるデータ分析入門_2nd_Pandas編　　
+
+「5章」Pandas入門
+    import pandas as pd
+    from pandas import Series,DataFrame
+    
+  5.1  Pandasのデータ構造(P136)
+　
+■シリーズ(Series)
+       ・1次元の配列のようなオブジェクト
+       
+       ・連続した値とそれに関連付けられたインデックスが含まれる
+            obj = pd.Series([4,7,-5,3])
+
+       ・value属性とindex属性でそれぞれを取得出来る
+            obj.values
+            obj.index
+
+       ・インデックス付きのシリーズを作成
+            obj2 = pd.Series([4,7,-5,3],index=['b','d','a','c'])
+
+       ・インデックスのラベルから指定出来る
+            obj2['a']
+            obj2[['c','a','d']]
+            
+       ・インデックスラベルから値を設定出来る            
+            obj2['e'] = 6
+            
+       ・条件指定でフィルタリングが出来る            
+            obj2[obj2 >0]
+            
+       ・オブジェクトに値が含まれているか？            
+             b in obj2
+          
+       ・ディクショナリ形式からシリーズを作成可能
+             sdata = {'AA':100,'BB':200,'CC':300}
+             obj3 = pd.Series(sdata)
+
+       ・ディクショナリで作成する場合indexを指定するとその順番に並び替える
+             aa = ['CC','BB','EE']
+             obj4 = pd.Series(sdata,index=aa) ※キーがない場合はNaNになる
+
+       ・isnullとnotnullで欠損値を特定する(True or False)
+             pd.isnull(obj4)  又はobj4.isnull()
+
+       ・オブジェクト自身とそのインデックスはname属性を持つ
+             obj4.name ='zzz'
+             obj4.index.name='qqq'
+             
+       ・インデックスは代入して置き換え可能
+             obj4.index = ['yy', 'zz', 'xx', 'vv']             
+             
+                
+■データフレーム(DataFrame) 
+       ・テーブル形式のデータ構造を持ち、順序付けされた列を持つ
+       
+       ・一般的な作成方法は、同じ長さを持つリスト型の値を持ったディクショナリかNumpyの配列
+             data ={'ken':['aichi','aich','aich','tokyo','tokyo','tokyo'],
+                  'yer':[2000,2001,2002,2001,2002,2003],
+                  'pop':[1.5,1.7,3.6,2.4,2.9,3.2]}
+                  
+             df = pd.DataFrame(data)
+                   
+       ・headメソッドを使うと最初の5行だけ抽出される
+             df.head() 
+              
+       ・列の順番を指定出来る
+             df2 = pd.DataFrame(data,columns=['yer','pop','ken'])
+
+       ・df作成時、カラム指定した列がない場合は欠損値が代入される     ※df2['debt']=NaNでも列を追加出来る
+
+       ・単独カラム指定だとシリーズとして取り出せる
+             df2['ken']
+             df2.pop
+
+       ・行も位置や名前で参照出来る、名前で参照するにはloc属性を使う
+             df2.loc['b']
+             
+       ・列の値は代入して変更できる
+             df2['debt']=16.5
+        
+       ・列にリストや配列を代入する場合はdfの長さと一致する必要あり
+         
+       ・dfにシリーズを代入する場合、ラベルはdfのindexに従って正確に一致するよう代入される
+             val =pd.Series([-1.2,-1.5,-1.7],index=['b','d','f'])
+             df2['debt'] = val
+
+       ・新しい列追加はdf2['est']=15で出来る
+       
+       ・列の削除はdel df2['est']
+         
+       ・ネストした辞書の場合は外側の辞書キーを列のindex、内側のindexキーを行のindexとする
+             pop = {'aichi':{2001:2.4,2002:2.9},
+                    'tokyo':{2001:1.5,2001:1.7,2002:3.6}}
+             df3 = pd.DataFrame(pop)
+         
+       ・dfはNumpyと同じ文法で転置(行列の入れ替え)が出来る
+             df3.T
+             
+       ・インデックス指定した場合は指定順になる
+             f3 = pd.DataFrame(pop,index=[2001,2002,2003)
+
+       ・シリーズと同じくvaluesを参照すると、dfのデータが2次元のndarrayとして戻される
+             df3.values             
+         
+         ■dfに渡すことが可能な入力値
+           ・2次元nadarray
+           ・配列、リスト、タプルをバリューに持つディクショナリ
+           ・NumPyの構造化/レコード配列
+           ・シリーズをバリューに持つディクショナリ
+           ・ディクショナリをバリューに持つディクショナリ
+           ・ディクショナリ、又はシリーズのリスト
+           ・リスト又はタプルのリスト
+           ・別のデータフレーム
+           ・NumPyのMaskedArray
+         
+■インデックスオブジェクト
+       ・インデックスオブジェクトは軸ラベルや軸name、names属性などを保持する役目
+       
+       ・インデックスオブジェクトは変更不可(immutable)  
+       
+       ・Pythonのセットと異なり重複したラベルを持つことが出来る
+       
+         ■インデックスオブジェクトのメソッドと属性(属性)
+           ・append:追加のインデックスを連結し、新しいインデックスを生成
+           ・difference：集合の差を計算する
+           ・intersection:集合の論理積を計算
+           ・union:和集合を計算する
+           ・isin:各値が集合に含まれているかブール型の配列を計算
+           ・delete：指定したi番目の要素を削除した新しいインデックスオブジェクトを作成
+           ・drop：指定した値を削除
+           ・insert：指定したi番目に要素を挿入
+           ・is_monotonic:各要素が１つ前の要素と等しいか、それよりも大きい場合にTrueが戻される
+           ・is_unique：重複した値を持たない場合にTrueが戻される
+           ・unique：インデックスオブジェクトから重複のない値の配列を計算する
+       
+  5.2  Pandasの重要な機能(P149)
+■再インデックス付け
+       ・reindexメソッドは新しいインデックスに従った新しいオブジェクトを作成
+             obj2 = obj.reindex(['a','b','c','d','e'])
+
+       ・reindexでメソッドを使うとカラムの内挿や穴埋めが出来る
+             obj3.reindex(range(6),method='ffill') 
+
+       ・dfではreindexで行や列インデックスを変更出来る
+             frame2 = frame.reindex(['a','b','C','d'])  ※行の変更
+             frame2 = frame.reindex(columns=['a','b','C','d']) ※列の変更
+        
+         ■reindexメソッドの引数
+           ・index:インデックスに使用する新しいシーケンス
+           ・method:内挿、穴埋め方法の指定。ffillは前方に穴埋め、bfillは後方に穴埋め
+           ・fill_value:再インデックス付きのとき、欠損値の代わりに使用する値
+           ・limit:前方、後方穴埋め時にどれだけの数のギャップを埋めるか、その最大値
+           ・tolerance:前方、後方穴埋め時にインデックスの数値にどれくらい差がある場合まで穴埋めするかの最大値
+           ・level:階層型インデックス使用時に再インデックス付けを行う階層を指定する
+           ・copy:Trueを指定すると、新旧インデックスが同じ場合、常にデータコピー。Falseはコピーされない
+       
+■軸から要素を削除する 
+       ・dropメソッドで指定した要素から軸が削除された新しいオブジェクトを作成
+             obj2.drop(['b','d'])
+             
+             df.drop(['a','d'])     ※行から値が削除
+             df.drop('pop',axis=1)  ※列から値が削除
+            
+       ・引数にinplaceを使うとdfを直接置き換える事が出来る（通常のdropは新しいオブジェクトを戻す)
+             df2.drop('pop',axis=1,inplace=True)
+       
+■インデックス参照、選択、フィルタリング
+       ・シリーズのインデックス参照は整数値やインデックス値指もOK
+             obj5['a'] 又は  obj5[2]
+ 
+       ・インデックス参照で取り出した行に値を設定できる
+             obj5['b':'c']=5
+
+       ・dfのインデックス参照の場合
+             df2[['pop','ken']]  ※列の参照
+             df2[0:2]            ※行の参照
+                          
+       ・指定した条件にマッチした行を取得               
+             df2[df2['pop'] > 2.5]
+             
+       ・カラムが数値なら値を比較して真偽値を持つdfが出来る
+             df5 > 5
+                   
+■locとilocによるデータ選択
+       ・ラベルを使うときはloc、整数のインデックス位置による参照はiloc
+             df2.loc['b',['yer','ken']]
+             df2.iloc[1,[3,0,1]]
+
+       ・スライシングも可能
+             df2.loc[:'d','ken'] 
+             df2.iloc[:,:3][df2.pop >2]
+           
+         ■データフレームにおけるインデックス参照の方法
+          ・df[val]：列や列のシーケンスを取り出す方法
+          ・df.loc[val]:1つ以上の行をラベルを指定して選択
+          ・df.loc[:,val]:1つ以上の列をラベルを指定して選択       
+          ・df.loc[val1,val2]:行、列列をラベルを指定して選択
+          ・df.iloc[where]:1つ以上の行を整数のインデックス位置を選択
+          ・df.iloc[:,where]:1つ以上の列を整数のインデックス位置を選択
+          ・df.iloc[w_i,w_j]:行と列を整数のインデックスを指定
+          ・df.at[label_i,label_j]:行と列のラベルを指定して、１つの値を取得
+          ・df.iat:行と列のインデックスを指定して１つの値を取得
+          ・reindexメソッド：行や列をラベルを指定して選択
+          ・get_value,set_valueメソッド：行と列のラベルを指定して、１つの値を選択
+  
+■整数のインデックスの注意点
+       ・ser[-1]  ※これだとエラーになる
+       
+■算術とデータの整形
+       ・別々のインデックスを持つ算術計算が出来る
+             s1 = pd.Series([7,2,3,1],index=['a','c','d','e'])
+             s2 = pd.Series([2,4,1,5,3],index=['a','c','e','f','g'])
+             s1 + s2     ※重複してないインデックスは欠損値が代入される
+
+■算術メソッドと値の変換     
+       ・np.nanでNaNを代入出来る
+ 
+       ・算術メソッドでfill_value=0という引数を渡すとNaNが0に埋まる
+             df1.add(df2,fill_value=0)
+              
+         ■算術メソッド
+          ・add,radd:加算メソッド(+)
+          ・sub,rsub:減算メソッド(-)
+          ・div,rdiv:徐算メソッド(/)
+          ・floordiv,rfloordiv:除算を行った後、床巻子を適用(//)
+          ・mul,rmul:乗算を行うメソッド(*)
+          ・pow,rpow:累乗を行うメソッド(**)  
+                       
+■データフレームとシリーズでの演算          
+       ・デフォルトではシリーズのインデックスとdfの列がマッチングされブロードキャストは行方法で行われる
+
+       ・インデックスが見つからない場合は再インデックスされ和集合が形成
+       ・ブロードキャストを列方向に行うには算術メソッドを使う
+             df.sub(series3,axis='index')  ※指定した軸はマッチさせたい軸　axis='index'又はaxis=0
+
+              
+■関数の適用とマッピング   ☆           
+       ・Numpyのufunc(メソッド)はpandasでも有効
+             np.abs(df2)
+
+       ・1次元配列に適用可能な関数を行や列に適用する場合はdfのapplyメソッドを使う
+             f = lambda x:x.max()-x.min()
+             df2.apply(f)                  ※フレームの各列で1度だけ呼び出されている
+
+       ・applyの引数にaxis='columns'とすれば各行に対して1度ずつこの関数が呼ばれる
+       
+       ・applyメソッドは複数の値を持ったシリーズもOK
+             def f(x):
+                 return pd.Series([x.min(),x.max()],index=['min','max'])
+       
+       ・要素(各値)ごとに関数を使う場合はapplymap
+             format = lambda x: x * 2
+             df2.applymap(format)       ※シリーズの場合はmapメソッド
+              
+       
+         ■関数のまとめ
+           ・PandasでNumPyの関数を使用する
+              ・関数の引数にpandasオブジェクトを指定可能
+              ・関数の種類および引数の設定によって要素・行・列いずれに適用されるかが異なる
+              ・pandasオブジェクトのメソッドとして用意されている関数もある      
+       
+           ・pandasオブジェクトのメソッドで関数を適用
+              ・要素（各値）に対する関数
+                ・Seriesの各要素に適用: map(), apply()
+                ・DataFrameの各要素に適用: applymap()
+              ・行や列（一次元配列）に対する関数              
+                ・DataFrameの各行・各列に適用: apply()
+       
+■ソートとランク           
+       ・行や列のインデックスを辞書順でソートするにはsort_index
+             df.sort_index() 
+             df.sort_index(axis=1) ※列の場合
+
+       ・ソートを降順にする場合
+             df.sort_index(axis=1,ascending=False)
+                    
+       ・シリーズの値によってソートする場合はsort_values
+             series.sort_values()  ※デフォルトでは欠損値はシリーズの末尾にソートされる
+
+       ・dfの値ソートをする場合
+             df.sort_values(by='b')
+
+       ・複数の列でソートする場合は列の名前をリストで渡す
+             df.sort_values(by=['b','e'])
+       
+       ・ランクは配列のデータから妥当な数値をランクとして代入
+             series.rank() ※デフォルトではタイになったグループは平均値を代入する
+ 
+       ・ランクを観測された順番に従って代入する場合
+             series.rank(method='first')
+             
+       ・降順にランクをつける場合
+              series.rank(ascendig=Flase)
+              
+       ・dfでは行か列でランク計算できる
+             df.rank(axis='columns)
+             
+         ■ランクがタイになった時のルール一覧(rankの引数にmethodを使う)
+              ・'average':デフォルトルール、平均値を代入
+              ・'min':最小ランクを代入
+              ・'max':最大ランクを代入
+              ・'first':データが出現した順番に従って代入
+              ・'dense':minと同じだがランクがグループ間で１ずつ増える　
+       
+■重複したラベルを持つ軸のインデックス      
+       ・is_uniqueでインデックスラベルが一意がどうか確認できる
+              obj.index.is_unique
+
+  5.3  要約統計量の集計と計算(P172)
+       ・dfで各カラムの合計を求める  
+             df.sum() 
+             df.sum(axis='columns')
+             
+         ■集約メソッドのオプション
+              ・axis：集約する方向軸.0が行方向、1が列方向
+              ・skipna:欠損値を除外するかどうか、デフォルトはTrue
+              ・level:MultiIndexの場合、集約対象のグループの階層を指定
+
+         ■要約統計量の一覧
+              ・count:NAではない要素の数
+              ・describe:複数の要約統計量を求める
+              ・min,max:最小値、最大値を求める
+              ・argmin,argmax:最小値、最大値が得られたインデックス位置(整数)を求める
+              ・idmin,idmax:最小値、最大値が得られた要素のラベルを求める
+              ・quantile:データのパーセント点を0から1の範囲で求める
+              ・sum:合計値
+              ・mean:平均値
+              ・median:中央値
+              ・mad:平均値からの平均絶対偏差
+              ・prod:全ての値の積
+              ・var:標本分散
+              ・std:標本標準偏差
+              ・skew:標本歪度
+              ・kurt:標本尖度
+              ・cumsum:累積合計値
+              ・cummin,cummax:累積の最小値と最大値
+              ・cumprod:累積の積
+              ・diff:1次の階差を求める(時系列データで便利)
+              ・pct_change:パーセントの変化を求める
+       
+■相関と共分散 
+       ・corrはindex順に並んだNAでない値の重なりから相関を求める
+              df2['a'].corr(df2['b']) ※シリーズの場合
+              df.corr()               ※dfの場合
+              
+       ・covはindex順に並んだNAでない値の重なりから共分散
+     
+       ・dfでcorrwithを使うと特定の行や列と別のシリーズやdfに対する相関を求める
+              df2.corrwith(df2['e']) ※axis='colunms'を指定すると行で同じことが出来る
+       
+■一意な値、頻度の確認、所属の確認       　
+       ・シリーズの中の一意な値を配列として取り出す
+              series.unique()
+       
+       ・value_countsはシリーズに含まれる値の頻度を求める
+              series.value_counts()
+              pd.value_counts(obj.values,sort=Flase) ※上の式と同等
+   
+       ・isinは値のいずれかが含まれるかをTrue or Falseで返する
+              mask = series.isin(['b','c'])
+              series[mask]とするとフィルタリングにある
+
+         ■一意な値、頻度の確認、所属の確認をするメソッド
+              ・isin:各シリーズの値が引数で渡された値に含まれているか真偽値の配列を求める
+              ・get_indexer:ある配列を一意な値を持つ別配列にする為、各値のインデックス位置を求める
+              ・unique：シリーズの値のうち、一意な値を観測された順に取り出す
+              ・value_counts:インデックスに対応する値の頻度を求める。頻度の降順に並ぶ   
+
+      ・dfで複数の列でヒストグラムを表示したい時にはapplyとvalue_countsを組み合わせる
+              df2.apply(pd.value_counts).fillna(0)とすれば良い
+        
+「6章」データの読み込み、書き出しとファイル形式 P181
+   6.1. テキスト形式のデータの読み書き
+         ■Pandasのデータ読み込み関数
+              ・read_csv:デフォルトの区切り文字はコンマ
+              ・read_table:デフォルトの区切り文字はタブ('\t')
+              ・read_fwf：区切り文字がないが列の幅が固定されている
+              ・read_clipboard:クリップボードからデータを読み込む
+              ・read_excel:XLSやXLSXファイルからテーブル形式のデータを読み込む
+              ・read_hdf:HDF5ファイを読む
+              ・read_html:HTML文書に含まれているテーブルを読む
+              ・read_json:JSONの文字列表現からデータを読み込む
+              ・read_msgpack:MessagePackバイナリ形式を用いて符号化されたpandasデータを読み込む
+              ・read_pickle:Pythonのpickle形式で書き出されたオブジェクトを読み込む
+              ・read_sas:sasデータセットを読む
+              ・read_sql:SQLクエリを発行した結果をpandasデータフレームとして読む
+              ・read_state:Stataファイル形式を読む
+              ・read_feather:Featherバイナリ形式を読み込む
+       
+       ・pandas.read_csvなどは型推論（どの列がどの型か）が行われる 
+       
+       ・csvファイルを読む例
+              df5 = pd.read_csv('./pydata-book-2nd-edition/examples/ex1.csv')
+              
+       ・ヘッダ行がない場合はデフォルトの列名代入や自分で指定出来る
+              pd.read_csv('./pydata-book-2nd-edition/examples/ex1.csv',header=None)
+              pd.read_csv('./pydata-book-2nd-edition/examples/ex1.csv',names=['a','b','c'])　
+              
+       ・特定の列をインデックスにしたい場合は、列番号か列名を指定する
+              pd.read_csv('examples/ex1.csv',names=['a','b','c'],index_col='message')
+              
+       ・階層型インデックスを作る場合は列の数か名前のリストを与える
+              pd.read_csv('examples/ex1.csv',names=['a','b','c'],index_col='key1','key2')
+       ・決まった区切り文字がない場合、read_tableに正規表現を与えて区切り文字を指定出来る
+              pd.read_table('examples/ex3.txt',sep='\s+')
+              
+       ・特定の行を読み飛ばすにはskiprows
+              pd.read_csv('examples/ex5.csv',skiprows=[0,2,3])
+              
+       ・欠損値とみなす文字を指定する
+               pd.read_csv('examples/ex5.csv',na_values=['NULL'])
+      
+         ■read_csvとread_tableによく与える引数
+              ・path:ファイルシステム上の位置やURLを示す文字列
+              ・sep,delimiter:各行を分割するのに用いる文字列あるいは正規表現
+              ・header:列名として使う行番号、デフォは0、ヘッダがない場合はNoneで指定
+              ・index_col:行のインデックスとして使う列の番号か名前を指定
+              ・names:列名をリストで指定する、header=Noneとともに使用
+              ・skiprows:読み飛ばす行番号を指定(最初の行は0)
+              ・na_values:欠損値として置き換える文字を指定
+              ・comment:文字又は文字列以降を各行からコメントとして切り離す
+              ・parse_dates:データを日時として読み込む。デフォはfalseでTrueだと全ての列で読み込む
+                            特定列の場合は列の番号か名前を指定
+                            リストがタプルやリストだと複数列を結合して日付として読む(日時と時刻など２つを1個にする)
+              ・keep_data_col:複数の列を結合して日付として読む場合、結合に用いられた列を残す
+              ・converters:データを読み込むついでに簡単な処理をしたいときに関数を入れる
+              ・dayfirst:日にちが最初にくる形式として取り扱う
+              ・date_parser：日付を読み込むのに用いる関数
+              ・nrows:ファイル先頭で読み込む行数
+              ・iterator:ファイルを読み込むのではなくイテレータとして扱うことができる
+              ・skip_footer:ファイル末尾で無視する行数
+              ・encoding:Unicodeとして用いる文字コード
+              ・skip_blank_lines:空白の行を読み飛ばす
+                                       
+      
+■テキストを少しずつ読み込む     
+       ・csvファイル全体を読み込まず数行だけ読み取る場合は行数をnrowsで指定
+              pd.read_csv('examples/ex5.csv',nrows=5)
+
+       ・ファイルを少しずつ読み込みたい場合は一度に読み込む行数をchunksizeで指定する
+              pd.read_csv('examples/ex5.csv',chunksize=1000) 
+         
+■テキスト形式でのデータの書き出し 
+       ・to_csvを用いるとデータをコンマ区切りのファイルに書き出せる
+              data.to_csv('examples/out.csv')
+              
+       ・欠損値を別の標識で出力場合 
+              data.to_csv('examples/out.csv',na_rep='NULL')
+              
+       ・行と列のindexを無効にする
+              data.to_csv('examples/out.csv',index=False,header=False)　
+
+■Microsoft Excelファイルの読み込み
+       ・Excelfileを使うにはインスタンスを使う
+              xlsx = pd.ExcelFile('exsamples/ex1.xlsx')
+              pd.read_excel(xlsx,'sheet1') 
+              
+       ・1つのシートだけであれば、以下のコードで読み込み可能
+              pd.read_excel('exsamples/ex1.xlsx','sheet1')
+              
+       ・書き出すにはExcelWriterを作成しto_excelメソッド 
+              writer = pd.ExcelWriter('exsamples/ex2.xlsx')
+              frame.to_excel(writer,'Sheet1')
+              writer.save() or   frame.to_excel('exsamples/ex2.xlsx')
+              
+■Web APIを用いたデータの取得 P203
+       ・requestsパッケージを使う
+
+■データベースからのデータの取得 P205
+       
+「7章」データのクリーニングと前処理　P209    
+   7.1 欠損値の取り扱い P209      
+         ■欠損値を扱うメソッド
+              ・dropna:指定した軸について、その軸のラベルの値に欠損値が含まれていたらラベルを削除
+                       含まれている欠損値の数がいくつまでなら削除しないか閾値で指定可能
+              ・fillna:欠損値を指定した値で穴埋めする、'ffill'や'bfill'などの方法もある
+              ・isnull:各値が欠損値であるか一連の真偽値を戻す
+              ・notnull:isnullの反対の動作をする
+   
+■欠損値を削除する
+       ・dropnaを使う
+              data.dropna()
+              data[data.notnull()]でも同じ結果
+              
+       ・特定カラムのNaNを含む行のみ削除する
+              data.dropna(subset=['columns])                        
+              
+       ・dfでdropnaの場合、how='all'を指定すると全てのデータが欠損値である行のみ削除
+              data2.dropna(how='all')
+         
+         行ではなく列を削除する場合はaxis=1を指定 
+              data2.dropna(how='all',axis=1)
+              
+       ・含まれている欠損値の数がいくつまでなら削除しないか閾値で指定可能
+              df.dropna(thresh=2)
+       
+■欠損値を穴埋めする        
+       ・fillnaに何らかの値を引数として呼び出すとその値で欠損値を置き換える
+              df.fillna(0)
+       
+       ・fillnaにディクショナリを与えると列ごとに異なる値でうめる
+              df.fillna({1:0.5,2:0})
+       
+       ・fillnaは新しいオブジェクトを戻すが、既存を直接変更もできる
+              df.fillna(0,inplace=True)
+       
+       ・再インデックス付けのときと同じ穴埋め方法('ffill','bfill')が使える
+              df.fillna(method='ffill')
+
+         ■fillnaの引数
+              ・value:欠損値の穴埋めにつかう値
+              ・method:穴埋め方法を指定する、指定がないとデフォは'ffill'
+              ・axis:穴埋めしたい軸。デフォルトはaxis=0
+              ・implace:コピーを作るのではなく、元オブジェクトを直接変更する
+              ・limit:ffill,bfillへの穴埋め時に連続した穴埋めを最大何回まで行うかを指定
+              
+   7.2 データの変形 P215
+ ■重複の削除
+       ・dfでduplicatedメソッド使うと各行の真偽値のシリーズを返す
+              data.duplicated()
+
+       ・drop_duplicatesは重複を削除し、デフォルトは全ての列が同じ場合に重複
+              data.dropduplicates()  
+                      
+       ・重複の対象を指定可能 
+              data.drop_duplicates(['k1'])
+                            
+       ・デフォルトは重複が見つかった最初を残すが、keep='last'にすると最後になる
+              data.drop_duplicates(['k1','k2'],keep='last')
+  
+ ■関数やマッピングを用いたデータの変換       
+       ・シリーズのmapメソッドはマッピングを定義した関数オブジェクトかディクショナリを渡せる
+              number = {'one':'11','two':'22',}           
+              data['nn'] = data['k1'].map(number)
+           
+       ・列の値を全て小文字にするにはstr.lower()   大文字はstr.upper()
+              data['k1'].str.lower()
+       
+ ■値の置き換え        　  
+       ・replaceメソッドでデータを置き換える
+              data.replace(-999,np.nan)   ※inplace=Trueとしないと、新しいシリーズが戻る
+
+       ・複数の場合は、第1引数にリスト、第2引数に入れる値を指定
+              data.replace([-999,-1000],np.nan)
+              
+       ・置き換えたい値ごとにいれる値が違う場合は第2引数もリストで渡す
+              data.replace([-999,-1000],[np.nan,0])
+              
+       ・置き替え前後の値をディクショナリで指定可能
+              data.replace({-999:np.nan, -1000: 0}) 
+       
+ ■軸のインデックスの名前を変更
+       ・インデックスもmapメソッドで変更出来る
+              trans = lambda x: x[:].upper()
+              data3.index=data3.index.map(trans) 
+          
+       ・元を変更せず、変更後を別に作成したい場合はrenameメソッド
+              ata3.rename(index=str.title,columns=str.upper)
+              
+       ・renameメソッドでディクショナリを使うと一部ラベルのみ変更可能
+              data3.rename(index={'a':'AAA'},columns={'k2':'KKK2'}
+              
+       ・元のデータセットを直接変更するにはinplace=True 　                
+
+■離散化とビニング
+       ・ビニングはpandasのcut関数を使用
+              ages =[20,22,25,27,21,61,37,31]
+              bins = [18,25,60,100]
+              cats = pd.cut(ages,bins)
+       
+         結果は、categoriesという名前の配列とラベル情報を含むcode属性が含まれる
+              cats.codes
+              cats.categories         
+                  
+       ・各binのデータ数を数える
+              pd.value_counts(cats)
+
+       ・左側を閉区間[にする場合
+              pd.cut(ages,bins,right=False)  
+                          
+       ・labelsオプションでビンの名前を設定可能
+              names=['YY','MM','XX','ZZ']
+              pd.cut(ages,bins,labels=names)
+      
+       ・binの数を指定する場合は引数に整数値で渡す
+              pd.cut(data6,4,precision=2)  ※precisionはビンを設定する境界値を小数点以下2桁の精度に設定する
+              
+       ・サンプルをほぼ同じデータサイズのbin数にするにはqcut  
+              pd.qcut(data6,4)  #4つの四分位範囲にビニング
+
+■外れ値の検出と除去 (フィルター)
+       ・1列で外れ値を見つける場合
+              col[np.abs(columns)>3]  #絶対値が3より大きいもの
+
+       ・全ての行で外れ値見つける場合
+              data7[(np.abs(data7) > 3).any(1)]   #numpyの真偽値配列関数
+
+■順列やランダムサンプリング
+       ・ランダムに並べ替えるにはnp.radom.permutaionを使う
+         並べたい軸の長さ入れれば、新しい配列が出来る
+              sampler = np.random.permutation(5)
+              data.take(sampler)
+
+       ・ランダムに一部だけ非復元抽出(一度抽出するとその後対象にならない）はsampleメソッド
+              data7.sample(n=3)
+
+       ・sampleメソッドで引数はreplace=Trueとすると、復元抽出になる
+              data7.sample(n=10,replace=True)
+  
+■標準変数やダミー変数の計算
+       ・カテゴリ変数をダミー変数や標識変数の行列へ変換するにはget_dummies
+              pd.get_dummies(df['key'])
+ 
+       ・引数prefixで接頭語を追加出来る  
+              dummies = pd.get_dummies(df['key'],prefix='key')  
+       
+       ・cutとget_dummiesを組み合わせてbin数の表を作成する
+              values = np.random.rand(10)
+              bins=[0,0.2,0.4,0.6,0.8,1]
+              pd.get_dummies(pd.cut(values,bins))
+         
+   7.3 文字列操作 P231              
+   
+■文字列オブジェクトのメソッド   
+       ・splitメソッドで文字を分割してリストに入れる
+              val = 'a,b, guido'
+              val.split(',')
+
+       ・stripメソッドで文字列の前後の空白文字を取り除く
+              val2 = [x.strip() for x in val.split(',')]
+       
+       ・joinメソッドでリストの文字を連結する
+              '::'.join(val2)
+       
+         ■Python組み込みの文字列メソッド
+              ・count:指定した文字列が重複せずに見つかった回数を戻す
+              ・endswith:文字列が指定した文字で終わってる場合にTrue
+              ・startswith:文字列が指定した文字で始まる場合にTrue
+              ・join:指定したリストやタプルに含まれる文字を連結する
+              ・index:指定した文字列が見つかった時の先頭の文字位置を戻す、見つからないとValueError
+              ・find:指定した文字列が最初に見つかった時の先頭の文字位置を戻す、見つからないと-1
+              ・rfind:指定した文字列が最後に見つかった時の先頭の文字位置を戻す、見つからないと-1
+              ・replace:指定した文字を他に置き換える
+              ・strip,rstrip,lstrip:空白文字を取り除く。stirpは両方、rstripは右側のみ
+              ・split:指定した区切り文字によって文字列を複数に分割し、リストに戻す
+              ・lower:アルファベットを小文字に変換
+              ・upper:アルファベットを大文字に変換
+              ・casefold:
+              ・ljust,rjust:文字列が指定した幅以上になるように空白を詰める
+        
+■正規表現 
+       ・reモジュールを使う
+              import re
+              text ="foo   bar\t bax  \tqut"
+              re.split('\s+',text)  ※ 1文字以上の空白文字は\s+という正規表現で表せる
+
+       ・正規表現のコンパイルはre.compileで自分で明示的に実行出来る
+              regex= re.compile('\s+')
+              regex.split(text)  
+                  
+       ・正規表現にマッチした文字列のリストを得るにはfindall
+              regex.findall(text)
+              
+       ・\を用いてエスケープしたくない場合はPythonのraw文字列をつかう
+          r'C:\x'と書けば'C:\\x'と書くのと同じ
+          
+         ■正規表現のメソッド
+              ・findall: 指定して文字列に対してパターンマッチングを行い全てをリストに戻す
+              ・findliter: findallと同じだがイテレータに戻す
+              ・match: 指定した文字列の先頭でパターンマッチング行いマッチした部分を必要に応じてグループに分割
+              ・search: 文字列内のどこでもパターンマッチングしていればマッチオブジェクトを返す
+              ・split: マッチした文字列で指定した文字列を複数に分割し、リストにして戻す
+              ・sub,subn: 文字列内にパターンがみつかった時、その部分を指定した文字に置き換える
+       
+■文字列関数のベクトル化   ☆
+       ・str属性を使うと、欠損値を飛ばして文字列を処理できる
+              data.str.contains('gmail')
+
+         ■ベクトル化された文字列メソッドの一部
+              ・cat: 要素ごとに連結する
+              ・contains: パターンや正規表現にマッチする部分が含まれているか表す
+              ・count: パターンにマッチした回数を戻す
+              ・endswith,・startswith: それぞれの要素に対してx.endswith(pattern)と同じ 　
+              ・findall:指定したパターンにマッチしたもの全てのリストを戻す
+              ・get:要素をインデックスで取得する
+              ・isalnum,・isalpha,・isdecimal,・islower,・isnmeric,・isupper :組み込み関数str.is___と同じ
+              ・join: シリーズ内の文字列要素を渡された区切り文字で結合する
+              ・len: 文字列の長さを返す
+              ・lower,upper : x.lower x.upperと同じ
+              ・match:re.matchによるマッチングを行い、TrueかFalseで返す
+              ・extract:
+              ・pad: 文字列の左端や右端、両端に空白文字を追加
+              ・center: pad(side='both')と同じ
+              ・repeat: 文字列を複数回繰り返した文字列を返す
+              ・replace: パターンマッチで見つかった場合に他の文字列に置き換える
+              ・split: 区切り文字や正規表現で文字列を分割する
+              ・strip,rstrip,lstrip:空白文字を取り除く
+
+
+
+「8章」データラングリング:連結、結合、変形 P243
+   8.1 階層型インデックス
+       ・複数(2以上)のインデックスの階層を軸に持たせることが出来る機能
+         データの部分集合を簡潔に抽出できる
+         データ変形時の操作に重要な役割を果たす
+         
+       ・dfはどちらの軸にも階層型インデックスを持たせる事が可能
+                 
+       ・階層型インデックスのそれぞれには名前を付ける事が出来る
+              frame.index.names = ['key1','key2']
+              frame.columns.names = ['state','color']                                 　
+                     
+■階層の順序変更やソート         
+       ・インデックス階層の順序を変更するにはswaplevelメソッドをつかう
+              frame.swaplevel('key1','key2')
+        
+       ・特定の１つの階層の値だけを用いてデータをソートするにはsort_indexメソッド
+              frame.sort_index(level=1)
+
+■階層ごとの要約統計量       　
+       ・要約統計量でlevelオプションを与えて、その軸での集計対象としたい階層を指定できる
+              frame.sum(level='key2')
+              frame.sum(level='color',axis=1)
+           
+■dfの列をインデックスに使う
+       ・dfのset_indexメソッドは指定した1つ以上の列をインデックスに持つ新しいdfを生成
+              frame2 = frame.set_index(['c','d'])
+        
+       ・set_indexの デフォルトではindexに使用した列は削除されるが、残すことも可能
+              frame.set_index(['c','d'], drop=False)
+              
+       ・reset_indexは階層型インデックスのそれぞれの階層が列に変換される
+              frame2.reset_index()
+
+   8.2 データセットの結合とマージ  P249
+       ・pandas.margeは複数のdfの行同士を1つ以上のキーに基づいて連結する
+       ・pandas.concatは特定の軸にそって、縦や横に連結する
+       ・combine_firstは重複するデータを持つ複数のオブジェクトをつなぎ合わせて、
+                        オブジェクトの欠損値を別のオブジェクトの値で穴埋めする
+       
+■dfをデータベース風に結合する(merge関数)
+       ・merge関数で行同士を連結する
+              pd.merge(df1,df2,on='key')   #onでマージキーを指定する
+          
+       ・キーとしたい列の名前がdfで異なっていた場合、それぞれ個別に指定出来る
+              pd.merge(df3, df4, left_on='lkey', right_on='rkey')       
+         
+       ・maergeはデフォルトはinnerjoin(内部結合),結合方法を変えるにはhowオプションで指定
+              pd.merge(df1,df2, how='outer')
+       
+         ■howオプションで指定できるさまざまな結合方法
+              ・'inner':２つのテーブル両方に含まれているキーのみ用いて結合
+              ・'left':左側のテーブルに含まれているキーをすべて用いて結合を行う
+              ・'right':右側のテーブルに含まれるキーをすべて用いて結合を行う
+              ・'outer':２つのテーブルの一方にでも含まれているキーをすべて用いて結合を行う
+
+       ・複数のキーでマージを行いたい場合は列名のリストを渡す
+              pd.merge(df1,df2, on=['key1','key2'],how = 'outer')　
+        
+         ■merge関数の引数
+              ・'left:マージ対象となる左側のdf
+              ・'right:マージ対象となる右側のdf
+              ・'how:'inner','outer','left','right'のいずれかを指定。デフォルトは'inner'
+              ・'on:結合に使う列名。両方に存在する列名でないとNG
+              ・'left_on:左のdfで結合キーとして用いる列名
+              ・'right_on:右のdfに対する、left_onと同様の指定
+              ・'left_index:左のdfについては、行のindexを結合キーとして用いる
+              ・'right_index:右のdfに対する、left_indexと同様の指定
+              ・'sort:マージ後のデータを結合キーで辞書順にソートする。デフォルトはTrue
+              ・'suffixes:重複する列名がある場合、列名の末尾に不可する文字のタプル。デフォルトは('_x','_y')
+              ・'copy:Flaseの場合はマージにより新しいデータ構造を作るときにデータのコピーを行わない
+              ・'indicator:マージ後のdfに_margeという特殊な列を追加する
+      
+■indexによるマージ
+       ・マージ対象がindexに含まている場合は引数right_index=True or left_index=True
+              pd.0merge(left1,right1, left_on='key', right_index=True)
+       
+       ・dfの一方のみが階層型indexならもう一方はマージに用いる複数の列をリストとして指定する必要がある
+              pd.merge(left1,right1, left_on=['key1','key2'], right_index=True)  
+       
+       ・2つのdfの結合キーをどちらもindexにする場合
+              pd.merge(left1,right1, how='outer', left_index=True, right_index=True)
+              
+       ・indexによるマージの簡単な方法にjoinメソッドがある、ただし重複した名前の列はNG
+              left1.join(right1,how='outer')
+
+       ・2つ以上のテーブルをindex使ってマージ(concat関数を用いるのと同様)
+              left2.join([right2,another])　※このケースはデフォのinner結合
+
+
+■軸に沿った連結(concat)
+       ・オブジェクトを入れたリストを引数としてcocat関数を使うと、値やインデックスが連結される
+              pd.concat([s1,s2,s3]) ※デフォではconcat関数はaxix=0方向に連結
+
+       ・axis=1で横に連結（マージ）
+              pd.concat([s1,s2,s3],axis=1,sort=True)
+              
+       ・デフォはouter_joinだがinnerに変更出来る
+              pd.concat([s1,s4],axis=1,sort=True,join= 'inner')
+              
+       ・階層型インデックスを設定すれば、各連結前の要素を識別できる
+              result = pd.concat([s1,s2,s3], keys=['one','two','three'])
+              
+         axis=1で列方向に結合,keysはdfのヘッダとなる    
+              pd.concat([df1,df2], axis=1, keys=['level1','level2'])
+
+       ・辞書をconcatに渡すと、辞書のキーがkeysとなる
+              pd.concat({'level1':df1,'level2':df2},axis=1)
+              
+       ・indexに重要な意味が無い場合はignore_index=Trueとすればindexが振り直される              
+              pd.concat([df1,df2], ignore_index = True, sort=True)
+
+         ■concat関数の引数
+              ・objs:連結対象とするオブジェクトのリストかディクショナリ
+              ・axis:連結方向を表す軸。デフォは0(行方向)
+              ・join:'inner'か'outer'のどちらか指定(デフォはouter)
+              ・join_axes:連結用いないn-1個の軸のインデックスとして、指定したものを使う
+              ・keys:連結対象の軸の方向に階層型インデックスを作成するのに、各オブジェクトと紐づける値
+              ・levels:階層型インデックスの階層として使用するインデックスの指定
+              ・names:keysやlevelsを指定して階層型インデックスを作成した場合の各階層の名前
+              ・verify_integrity:連結後に重複があるかどうか確認し、ある場合は例外を発生させる、デフォはFalse
+              ・ignore_index:連結するインデックスを保存せず、rangeによって新たなインデックスを生成して設定する
+       
+■重複のあるデータの結合 
+       ・np.whereと同等な操作がシリーズのcombine_firstメソッドで可能
+              b.combine_first(a)
+
+   8.3 変形とピボット操作  P266
+■階層型インデックスによる変形
+         stack:データ内の各列を行へとピボットさせる
+         unstack:各行を列へと回転させる 
+         
+       ・stackメソッドで列が行にピボットされる         
+              data.stack()
+              
+       ・unstackメソッドで行を列へと回転させる              
+              data.unstack()
+                                   
+       ・unstackで番号やラベルを引数に渡すとunstackする階層を変更可能
+              data.unstack(0)
+
+       ・unstack時に値がないと欠損値になる
+       
+       ・stack時に欠損値があると欠損値を除去する       
+       
+       ・stack時に引数dropna=Falseとすると欠損値は除去しない
+              data2.unstack().stack(dropna= False)
+
+■縦持ち」フォーマットから「横持ち」フォーマットへのピボット 
+       ・pivotメソッドで指定カラムをピボット可能
+              ldata.pivot('date','item','value')
+
+       ・pivoted = ldata.pivot('date','item')と
+         unstacked = ldata.set_index(['date','item']).unstack('item')は同じ結果になる
+     
+■横持ち」フォーマットから「縦持ち」フォーマットへのピボット
+       ・横データを縦データに変換するのがmelt、識別情報を明示する必要がある
+              melted = pd.melt(df,'key')
+              
+       ・特定の列のみを用いるように指定
+              pd.melt(df, id_vars=['key'], value_vars=['A','B'])
+
+       
+「9章」プロットと可視化 P277
+          import matplotlib.pyplot as plt
+          %matplotlib inline
+
+■Matplotlib APIの概要 P278
+       ・直線のグラフを描く
+              data = np.arange(10)
+              plt.plot(data)
+
+       ・先にサブプロットオブジェクトを生成する場合
+              fig, axes = plt.subplot(2.3)
+              axes[0,1].set・・・
+       
+■サブプロットのまわりの空白を調整する 
+              subplots_adjust(left=None,bottom=None,right=None,top=None,
+                              wspace=None,hspce=None)  
+                              
+■色、マーカー、線種
+       ・線種、色を指定
+              ax.plot(x,y,linestyle='--',color='g')
+       
+       ・折れ線グラフにマーカをつける場合
+              ax.plot(x,y,linestyle='--',color='g',marker='o')
+       
+■目盛り、ラベル、凡例       　 
+       ・X軸の目盛りを変更するには
+         set_xticks:データ範囲のどこに目盛りを入れるか
+         set_xticklabels：ラベルとして設定
+         set_titleでサブプロットのタイトルを指定
+         set_xlabelでX軸に付ける名前を指定
+         ※Y軸の場合はxの所をyに変更すればよい
+ 
+■凡例の追加
+       ・各データのプロットを追加する際にlabelを引数で指定する
+              ax.plot(x,y,'k',label='one')   
+
+       ・ax.legend()かplt.legend()で呼び出す 
+
+■サブプロットへの注釈や描画   　　　　    　　
+       ・textはプロット上の指定した座標(x,y)にテキスト描画する
+              ax.text(x,y,'Hello world',family='monospace',fontsize=10)
+         
+       ・annotate(注釈)を使うとテキストと矢印をうまく調整して描画できる
+              ax.anotateのxytextでラベル位置、xy引数でラベルから伸びる矢印の終点を指定
+       
+■プロットのファイルへの保存
+       ・アクティブな図はplt.savefigでファイル保存出来る
+              plt.savefig('figpath.svg')
+       
+■Matplotlibの設定
+       ・グローバルパラメータをカスタマイズする場合rcメソッドを使う
+              plt.rc('figure',figsize=(10,10))
+  
+   9.2 pandasとseabornのプロット関数  P295
+ ■折れ線グラフ
+       ・シリーズやdfには基本的な形式をプロットする為にplot属性がある
+              s.plot()
+              df.plot()
+           
+         ■Series.plotメソッドの引数
+              ・label:プロットの凡例を表示するラベル
+              ・ax:プロットするMatplotlibのサブプロットオブジェクト
+              ・style:'ko--'などの線種指定文字列
+              ・alpha:プロットの不透明度(0～1までの値指定)
+              ・kind:'area','bar','bath','density','hist','kde','line','pie'のいずれを指定
+              ・logy:Y軸にログスケール
+              ・use_index:目盛りのラベルにオブジェクトのインデックスを使う
+              ・rot:目盛りのラベルの回転角
+              ・xticks,ytick:目盛りに使う値
+              ・xlim,ylim:軸の範囲
+              ・grid:軸のグリッドを表示
+           
+         ■dfのplotのみに指定できる引数
+              ・subplots:dfの各列を別々ｎサブプロットにプロットする
+              ・sharex:subplots=Trueの場合、サブプロット間でX軸を共有する
+              ・sherey:subplots=Trueの場合、サブプロット間でY軸を共有する
+              ・figsizse:作成する図のサイズ。２つの数値をタプルで指定
+              ・title:プロットのタイトル。文字列で指定
+              ・legend:サブプロットに凡例をつける
+              ・sort_columns:列をアルファベット順でプロットする
+           
+ ■棒グラフ           
+       ・plot.bar()とplot.barh()で縦棒と横棒の棒グラフを描ける 
+              data.plot.bar(color='k', alpha=0.7)
+              data.plot.barh(color='k', alpha=0.7)       
+          
+       ・積み上げ棒グラフはdfに対してstacked=Trueの引数を与える
+              df.plot.barh(stacked=True, alpha=0.5)
+              
+       ・Pandasでクロス集計するにはcrosstabメソッドを使う
+              pd.crosstab(tips['day'], tips['size'])
+                     
+       ・serbornを使う場合
+               import seaborn as sns 
+               sns.barplot(x='tip_pct',y='day',data=tips,orient='h')
+              ※serbornの引数にdataがありそこにpandasのdfを指定する
+             
+         sns.barplotの引数にhueがあり、カテゴリ型データを指定するとカテゴリに分けて集計出来る
+        
+ ■ヒストグラムと密度プロット         　  
+       ・Pandasの場合
+               tips['tip_pct'].plot.hist(bins=50)
+
+       ・seabornではdistplotメソッドでヒストグラムと連続型の密度推定の両方のプロットを同時に作成
+               sns.didtplot(values,bins=100,color='k')
+
+ ■散布図
+       ・seabornのregplotメソッドは散布図を作成し、線形回帰により回帰直線をあてはめる
+               sns.regplot('m1','unemp', data=trans_data)
+
+       ・seabornでペアプロットを見る場合は
+               sns.pairplot(trans_data,plot_kws={'alpha':0.2})
+       
+ ■ファセットグリッドとカテゴリ型データ
+       ・特定の切り口でデータをみることができるファセットグリッド
+         seabornにはcatplotという関数がある
+               sns.catplot(x='day',y='tip_pct',hue='time',col='smoker',
+                           kind='bar',data=tips[tips.tip_pct < 1])
+               
+               ※２つのファセットsmokerでわける
+            
+            
+「10章」データの集約とグループ演算 P315
+   10.1 GroupByの仕組み
+       ・グループ演算のプロセスは分離(split)-適用(apply)-結合(combine)
+       ・ キーによって分類し、グループ別に関数を適用し、結果を結合する
+               
+       ・key1のラベルでグループ化しdata1列の平均を計算
+               grouped = df['data1'].groupby(df['key1']) #この時点ではGroupbyオブジェクト
+               grouped.mean()
+
+       ・グループキーを複数にするには
+               means = df['data1'].groupby([df['key1'],df['key2']]).mean()
+               
+       ・dfにないデータでも正しい長さの配列をグループキーにつかうことが出来る       
+               trings = np.array(['AA','BB','CC','DD','EE'])
+               years = np.array([2005,2005,2006,2005,2006])
+               df['data1'].groupby([strings,years]).mean()
+
+       ・グループキーとしてデータが含まれている列名を渡すことができる
+               df.groupby('key1').mean()   
+               df.groupby(['key1','key2']).mean()
+
+       ・各グループのサイズ情報を見るにはsizeメソッド
+               df.groupby(['key1','key2']).size()
+
+ ■グループをまたいだ繰り返し      
+       ・繰り返しの中で、グループのnameとnameに対応するデータ(group)の2つを含むシーケンスを生成する 
+               for name,group in df.groupby('key1'):
+                   print(name)
+                   print(group)
+
+       ・複数キーを扱う場合、キーの値がタプルになる        
+               for (k1,k2), group in df.groupby(['key1','key2']):
+                   print((k1,k2))
+                   print(group)
+                                      
+       ・複数データを辞書型に変換するとデータ取り出ししやすい
+               pieces = dict(list(df.groupby('key1')))
+               pieces['a']
+
+       ・グループを別の軸(axis)に設定できる
+               rouped = df.groupby(df.dtypes,axis=1)
+  
+ ■列や列の集合の選択
+       ・aとbは同じ、aはgroupyオブジェクトに対してindex参照している
+               a= df.groupby('key1')['data1']
+               b= df['data1'].groupby(df['key1'])
+         
+       ・data2列だけの平均値を求めて結果をdfで得る場合
+               df.groupby(['key1','key2'])[['data2']].mean()  #index参照にリストや配列だとdfになる
+
+       ・data2列だけの平均値を求めて結果をシリーズで得る場合
+
+ ■ディクショナリやシリーズのグループ化
+       ・辞書でマッピング情報を作ってGroupbyに渡す事が出来る
+               mapping = {'a':'red','b': 'red','c':'blue','d':'blue','e':'red','f':'orange'}
+               by_column = df.groupby(mapping, axis=1)
+               by_column.mean()
+
+       ・シリーズでも同様にマッピング可能
+               people.groupby(map_series,axis=1).count()
+ 
+ ■関数を使ったグループ化
+        ・名前の文字数を基にグループ化
+               people.groupby(len).mean()
+ 
+        ・配列、辞書、シリーズと関数が混在しても問題なし
+               ey_list=['one','one','one','two','two']
+               people.groupby([len,key_list]).min()
+           
+
+ ■インデックス階層によるグループ化
+        ・階層を持つindexがある場合、軸のindex階層を使って集約できる
+               hier_df.groupby(level='cty', axis=1).count()
+        
+
+   10.2 データの集約
+        ・集約とはデータ変形を行って配列からスカラー値を生成すること
+              
+          ■最適済みのGroupbyメソッド
+              ・count:グループ内の欠損値以外の値の数
+              ・sum:欠損値以外の合計
+              ・mean:欠損値以外の平均
+              ・median:欠損値以外の算術中央値
+              ・std,var:標準偏差と分散
+              ・min,max:欠損値以外の最小値と最大値
+              ・prod:欠損値以外の積
+              ・first,last:欠損値以外の最初と最後の値
+       
+       ・quantileメソッド(分位点)も使用可
+               grouped = df.groupby('key1')
+               grouped['data1'].quantile(0.9)
+
+ 
+       ・自分で定義した集約関数を使うにはaggregateあるいはaggメソッドをつかう
+               def peak_to_peak(arr):
+                  return arr.max() - arr.min()
+             
+              grouped.agg(peak_to_peak)    
+             
+       ・describeも使用可能
+              groouped.discribe()
+         
+ ■列に複数の関数を適用する
+        ・aggメソッドで集約関数をリストで渡す 
+               grouped = tips.groupby(['day', 'smoker'])
+               grouped['tip_pct'].agg(['mean','std','count'])
+       
+       ・(名前、関数)のタプルをリストで渡せば、関数名を違う名前に変えることができる
+               grouped['tip_pct'].agg([('foo','mean'),('bar','std')])
+ 
+       ・dfの場合、関数のlistを指定すると、それぞれの列で複数の関数を適用できる
+               functions = ['count','mean','max']
+               result = grouped['tip_pct','total_bill'].agg(functions)
+
+       ・複数の列に対してそれぞれ異なる関数を適用したい場合
+               grouped.agg({'tip':np.max, 'size':'sum'})
+               grouped.agg({'tip_pct':['min','max','mean','std'], 'size':'sum'}) 
+       
+ ■集約されたデータを行インデックスなしで戻す
+       ・集約されたデータはindex付けされているが、無効化できる
+               tips.groupby(['day','smoker'], as_index=False).mean()
+       
+   10.3 applyメソッド：一般的な分離-適用-結合の方法      P331
+       ・applyはオブジェクトを操作するためのピースを分離し、それぞれのピースに対して
+         渡された関数を適用し、その後それらのピースを結合する   
+         
+       ・列でグループ分けし、apply使って関数を適用する 
+               def top(df, n=5, column = 'tip_pct'):
+                   return df.sort_values(by=column)[-n:]
+                       
+               tips.groupby('smoker').apply(top)
+                         
+       ・引数やキーワードが必要な関数をapplyに渡す場合、その関数の後にそれらの引数を指定出来る
+               tips.groupby('smoker').apply(top, n=1, columns='total_bill')
+                       
+       
+ ■グループキーの抑制
+       ・グループキーごとのインデックス形式を無効にする
+               tips.groupby('smoker', group_keys = False).apply(top)
+       
+ ■分位点とビン分析 
+       ・Categoricalオブジェクトはそのままgroupbyに渡せる
+               quartiles = pd.cut(frame.data1, 4)
+         
+               def get_stats(group):
+                   return {'min': group.min(), 'max': group.max(),
+                           'count': group.count(), 'mean': group.mean()}         
+         
+               groupd = frame.data2.groupby(quartiles)
+               groupd.apply(get_stats).unstack()
+         
+ ■例：グループ固有の値で欠損値を埋める                
+        ・欠損値を埋める値をグループによって変える場合、データをグループ分けして、
+          それぞれのグループに対してfillnaを使う関数をapplyする
+               fill_mean = lambda g: g.fillna(g.mean())
+               data.groupby(group_key).apply(fill_mean)
+ 
+       ・あらかじめ決まった値を使いたい場合
+               fill_values = {'East':0.5, 'West': -1}
+               fill_func = lambda g: g.fillna(fill_values[g.name])
+
+               data.groupby(group_key).apply(fill_func)
+
+           
+ ■例：ランダムサンプリングと順列
+         ・ランダムサンプリングはシリーズのsampleメソッドを使う
+               def draw(deek, n=5):
+                   return deck.sample(n)
+         
+               get_suit = lambda card: card[-1]
+               deck.groupby(get_suit).apply(draw, n=2) 
+   
+■例：グループの加重平均と相関   
+         ・加重平均を計算するにはnp.averageを使用する
+               grouped = df.groupby('category')
+               get_wavg = lambda g: np.average(g['data'], weights=g['weights'])
+               grouped.apply(get_wavg)
+             
+         ・相関をとる
+                spx_corr = lambda x: x.corrwith(x['SPX'])
+                get_year = lambda x: x.year
+                by_year = rets.groupby(get_year)
+                by_year.apply(spx_corr)
+                
+         ・列間の相関をとる
+                by_year.apply(lambda g: g['AAPL'].corr(g['MSFT']))
+                         
+         
+ ■例：グループ指向の線形回帰 
+   
+   10.4ピボットテーブルとクロス集計      P342 
+         ・ピボットテーブルはデータのグループ化と要約を行う
+         ・pivot_tableメソッドでグループ化と集約計算できる（デフォルトはは平均値で計算される）
+                tips.pivot_table(index=['day', 'smoker'])
+                                
+         ・smokerをテーブルの列、dayを行に配列
+                tips.pivot_table(['tip_pct', 'size'], index=['time', 'day'], columns= 'smoker')
+
+         ・margins=Trueを指定すると小計の情報を追加出来る
+                tips.pivot_table(['tip_pct', 'size'], index=['time', 'day'], columns= 'smoker', margins=True)
+       
+         ・デフォルト以外の集約関数を使う場合はaggfuncに関数を渡す
+                tips.pivot_table(['tip_pct', 'size'], index=['time', 'day'], columns= 'smoker',aggfunc= len )
+       
+         ・fill _valueを指定して穴埋めも可能
+                tips.pivot_table('tip_pct', index=['time', 'size', 'smoker'],columns='day', aggfunc=sum, fill_value=0)
+       
+          ■pivot_tableのオプション
+              ・values:集約する列の名称。デフォルトではすべての数値列を集約する
+              ・index:ピボットテーブルの行でGp化する為の列名かその他のGpキー
+              ・columns:ピボットテーブルの列でGp化するための列名かその他のGpキー
+              ・aggfunc:集約に用いる関数や、関数のリスト。'mean'がデフォルト
+              ・fill_value:結果のテーブルで欠損値を置き換えるための値
+              ・dropna:Trueを指定すると、すべての要素がNAである列を除外する
+              ・margins:行・列の小計や合計を追加する。デフォルトはFalse
+      
+■クロス集計：crosstabメソッド
+         ・クロス集計はグループの出現頻度を計算する   
+                pd.crosstab(data2.Nationality, data2.Handedness, margins=True)
+                
+         ・corsstabの最初の２つの引数は配列、シリーズ、配列のリストを使うことが出来る       
+                pd.crosstab([tips.time, tips.day], tips.smoker, margins=True)
+           
+           
+「11章」時系列データ P347 
+
+   11.1日付、時間のデータ型とツール      P342    
+         ・Python標準ライブラリ datetime
+                from datetime import datetime
+                now = datetime.now()     
+           
+                 now.year, now.month, now.day
+   
+           
+         ・timedeltaはdatetimeオブジェクトやdateオブジェクト間の差を表す
+                 delta = datetime(2011, 1, 7) - datetime(2008, 6, 24, 8, 15)
+                 delta.days
+                            
+         ・timedeltaをつかってdatetimeオブジェクトに足し引きして新しいdatetimeオブジェクトが作れる
+           from datetime import timedelta
+                 start = datetime(2011, 1,7)
+                 start + timedelta(12)
+           
+          ■datetimeモジュールに含まれるデータ型
+              ・date:日付(年,月,日)の情報を持つ
+              ・time:1日の時間の情報(時,分,秒,マイクロ秒)を持つ
+              ・datetime:日付と時間の両方の情報を持つ
+              ・timedelta:２つのdatetime型の値の差を、日,秒,マイクロ秒で表す
+              ・tzinfo:タイムゾーン情報を持つ基本の型
+            
+■文字列とdatetimeの変換   
+       ・strメソッドで時間を文字列に変換できる
+                 stamp = datetime(2011, 1, 3)
+                 str(stamp)  #時間を文字列に変換
+                 
+       ・strftimeメソッドで指定フォーマットの文字列へ変換出来る
+                 stamp.strftime('%Y-%m-%d')          
+       
+          ■Datetimeフォーマット一覧
+              ・%Y:4桁の年
+              ・%y:2桁の年
+              ・%m:2桁の月[01,12]
+              ・%d:2桁の日[01,31]
+              ・%H:時間(24時間)[00,23]
+              ・%I:時間(12時間)[01,12]
+              ・%M:2桁の分[00,59]
+              ・%S:秒[00,61]
+              ・%w:曜日を表す整数[0(日曜), 6]
+              ・%U:1年の週を表す整数[00,53]日曜をその週の最初の日とみなす
+              ・%W:1年の週を表す整数[00,53]月曜をその週の最初の日とみなす
+              ・%z:UTC時間からのずれを+HHMMまたは-HHMM形式で表したもの
+              ・%F:%Y-%M-%dを短縮したもの、2020-05-01
+              ・%D:%m%d%yを短縮したもの05/01/20
+              
+       ・strptimeメソッドで文字をdate型に変換できる
+                 value = '2020-07-25'
+                 datetime.strptime(value, '%Y-%m-%d')  
+                 
+       ・dateutilのparser.parseメソッドと使うと文字を日付表現に簡単にパース出来る                    
+                from dateutil.parser import parse
+                parse('2020-07-25')   
+                
+       ・dateutilは人間が理解できる日付表現ならパース可能        
+                parse('Jan 31, 1997 10:45 PM')
+                
+       ・dateutilでdyafirst=Trueにすると日が月より前にする
+                parse('6/12/2011', dayfirst=True)
+                
+       ・pandasのto_datetimeメソッドで文字をdate形式にパースできる
+                datestrs = ['7/6/2011', '8/6/2011']
+                pd.to_datetime(datestrs)       
+                
+       ・pandasのto_datetimeメソッドは欠損値を扱える
+               pd.to_datetime(datestrs + [None])
+               
+          ■datetimeオブジェクトの書式オプション(特定のロケール向けの日付書式)               
+              ・%a: 曜日の省略形
+              ・%A: 曜日を完全に表現したもの
+              ・%b: 月の省略形
+              ・%B: 月を完全に表現したもの
+              ・%c: 日付と時間を完全に表現したもの　[Tue 01 May 2012 04:20:57 PM]
+              ・%p: ロケールでの午前と午後を表したもの　AMやPM
+              ・%x: ロケールに適した日付の書式
+              ・%y: ロケールに適した時間の書式               
+                              　  
+   11.2 時系列の基本  P351
+■インデックス参照、データの選択、サブセットの抽出
+       ・インデックス参照でデータ抽出、スライスできる
+               Series.index[2]
+               
+       ・日付として解釈可能な文字列を使って参照可能 
+               ts['2011/01/08']
+               ts['20110108']
+                              
+       ・長い時系列でも年や年月を指定して一部を選択可能
+               longer_ts['2001']      #年を指定した場合
+               longer_ts['2001-05']   #年月を指定した場合
+
+       ・datetimeオブジェクトでも指定可能
+               ts[datetime(2011, 1, 7):]
+       
+       ・時系列の中に含まれないタイムスタンプを使って範囲指定可能
+               ts['2011/01/07': '2011/01/10' ]
+ 
+       ・指定して２つの日付間のデータを取り除くにはtruncateメソッドを使う
+               ts.truncate(after='2011/01/09')
+        
+■重複したインデックスを持つ時系列
+       ・一意でないタイプスタンプ(index)を集約する場合、groupbyでlevel=0を指定  #level=0はインデックスラベルの集約
+               grouped = dup_ts.groupby(level=0)
+               grouped.mean()
+ 
+            
+   11.3 日付範囲、頻度、シフト 
+
+■日付範囲の生成
+       ・date_rangeは一定の頻度に従う指定した長さのDatetimeIndexを生成する
+               pd.date_range('2012-04-01', '2012-06-01')
+               
+       ・開始日又は終了日だけを指定した場合は、生成する日数も指定が必要 
+               pd.date_range(start='2012-04-01', periods = 20)
+               pd.date_range(end='2012-06-01', periods=20)
+ 
+       ・基準頻度を変更する場合は、引数freq 
+               pd.date_range('2000-01-01', '2000-12-01', freq='BM')
+  
+       ・タイムスタンプを午前零時に標準化したい場合はnormalizeオプションを使う 
+               pd.date_range('2012-05-02 12:56:31', periods = 5, normalize= True)
+               
+                    
+          ■時系列の基準頻度
+              ・文字：オフセットクラス：説明
+              ・D:Day:暦通りの日次
+              ・B:Businessday:毎営業日
+              ・H:Hour:毎時
+              ・T又はmin:Minute:毎分
+              ・S:Second:毎秒
+              ・L又はms:Milli:毎ミリ秒
+              ・U:Micro:毎マイクロ秒
+              ・M:MonthEnd:暦通りの月末ごと
+              ・BM:BusinessMonthEnd:月の最終営業日ごと
+              ・MS:MonthBegin:暦通りの月初こと
+              ・BMS:BusinessMonthBegin:月の営業開始日ごと
+              ・W-MON,W-TUE:Week:毎週指定した曜日ごと
+              ・WOM-1MON, WOM-2MON,WeekOfMonth:月の第1-4の指定した曜日ごと
+              ・Q-JAN,Q-FEB:QuarterEnd:指定して月に年度が終わる前提で、四半期の暦通りの月末ごと
+              ・BQ-JAN,BQ-FEB:BusinessQuarterEnd:指定した月に年度が終わる前提で、四半期の最終営業日ごと
+              ・QS-JAN,QS-FEB:QuarterBegin:指定した月に年度が終わる前提で、四半期の暦通りの月初めごと
+              ・BQS-JAN,BQS-FEB:BusinessQuarterBegin:指定した月に年度が終わる前提で、四半期の営業開始日ごと
+              ・A-JAN,A-FEB:YearEnd:1年に1度,指定した月の暦通りの月末ごと
+              ・BA-JAN,BA-FEB:BusinessYearEnd:1年に1度,指定した月の最終営業日ごと
+              ・AS-JAN,AD=FEB:YearBegin:1年に1度,指定した月の暦通りの月初ごと
+              ・BAS-JAN,BAD=FEB:BusinessYearBegin:1年に1度,指定した月の営業開始日ごと
+ 
+
+■頻度と日付オフセット
+       ・基準頻度の前に整数を書けば、倍数が作れる
+               pd.date_range('2000-01-01', '2000-01-03 23:59', freq='4h')
+               pd.date_range('2000-01-01', periods=10, freq='1h30min')
+       
+■月の第何週目の曜日
+       ・第何週目の曜日(week of month)もできる
+               rng = pd.date_range('2012-01-01', '2012-09-01', freq= 'WOM-3FRI')
+       
+   
+■データの前方と後方へのシフト
+       ・データをshiftメソッドにより時間的に前方、後方へのシフト可能
+               ts.shift(2)
+               ts.shift(-2)
+           
+         ※データのみシフトなので時系列の最初か最後に欠損値が生まれる
+                  
+       ・頻度をshitメソッドに指定すると元からタイムスタンプを移動できる
+               ts.shift(2, freq='M')
+               ts.shift(3, freq='D')
+      
+■オフセットを指定して日付をシフトする
+       ・pandasの日付オフセットはdatetimeやタイムスタンプオブジェクトでも使用出来る
+               from pandas.tseries.offsets import Day, MonthEnd
+               now = datetime(2020, 5, 6)
+               now + 3 * Day()      
+               
+               now + MonthEnd()
+        
+       ・rollforward,rollbackメソッドを使って明示的に書くことが出来る
+               offset = MonthEnd()
+               offset.rollforward(now)
+
+   11.4 タイムゾーンを使う
+■タイムゾーンのローカライゼーションと変換   
+       ・タイムゾーンを指定して生成(引数はtz)
+               pd.date_range('2012/3/9 9:30' , periods = 10, freq= 'D', tz = 'UTC')
+       
+       ・タイムゾーンが曖昧な状態からローカライズするにはtz_localizeメソッドを使う
+               ts_utc = ts.tz_localize('UTC')
+       
+       ・タイムゾーンがローカライズされた物を別のタイムゾーンにするにはtz_convert
+               ts_utc.tz_convert('America/New_York')
+       
+■タイムゾーンを考慮したタイムスタンプオブジェクト
+       ・個別のタイムスタンプオブジェクトもtz_localizeでローカライズできたり、tz_convertで別のタイムゾーンに変換出来る
+               stamp = pd.Timestamp('2011-03-12 04:00')
+               stamp_utc = stamp.tz_localize('utc')
+               stamp_NY = stamp_utc.tz_convert('America/New_York')
+       
+       ・タイムスタンプを作成する時にタイムゾーンを指定可能
+               stamp_moscow = pd.Timestamp('2011-03-12 04:00', tz = 'Europe/Moscow')
+       
+   11.5 期間を使った算術演算
+       ・Periodクラスは期間を表現する
+               pd.Period(2007, freq='A-DEC') #この例ではPeriodオブジェクトは2007/1/1から2007/12/31まで含んている
+               
+       ・期間に対して整数を足したり引くと定義した頻度に従って期間をずらす               
+               pd.Period(2007, freq='A-DEC') + 5
+               pd.Period(2007, freq='A-DEC') - 7
+               
+       ・同じ頻度なら２つの期間の差を単位期間の数となる
+               pd.Period('2014', freq = 'A-DEC') - pd.Period(2007, freq='A-DEC')
+               
+       ・定期的な範囲の期間はperiod_range関数で作成               
+               pd.period_range('2000-01-01', '2000-06-30', freq='M')
+               
+       ・文字列配列があればPeriodIndexオブジェクトを作れる               
+               values = ['2001Q3', '2002Q2', '2003Q1']
+               pd.PeriodIndex(values, freq='Q-DEC')
+               
+■期間頻度の変換               
+       ・PeriodやPeriodIndexオブジェクトはasfreqメソッドで別の頻度に変換出来る
+               p = pd.Period('2007', freq='A-DEC')                      
+               p.asfreq('M', how='start')
+               
+               
+■四半期の頻度
+       ・PandasはQ-JANからQ-DECまで取り得る12個全ての四半期の頻度をサポートする
+               pd.Period('2012Q4', freq='Q-JAN')
+              
+       ・四半期の最後の営業日の1日前の16時のタイムスタンプを取得する場合     
+              (p.asfreq('B',how='e')-1).asfreq('T', how='s') + 16 *60
+              
+■タイムスタンプから期間への変換(とその逆)
+        ・タイムスタンプでindex付けされたものは、to_periodメソッドでindexを期間に変換出来る
+              Series.to_period()  ※デフィルトの頻度はタイプスタンプから推論
+              
+        ・任意の頻度を指定することもできる              
+              Series.to_period('M')
+              
+        ・タイムスタンプに戻す時はto_timestampメソッド              
+              Series.to_timestamp(how='end')
+               
+■配列からPeriodIndexを作成する
+        ・PeriodINdexクラスに頻度を指定して渡す事で、df用のindex形式に結合できる
+               pd.PeriodIndex(year= data.year, quarter=data.quarter,freq='Q-DEC')
+               
+   11.6 再サンプリングと頻度変換
+        ・再サンプリングとは時系列をある頻度から別の頻度に変換する事
+          ・ダウンサンプリング：高い頻度データを集約して低いデータにすること
+          ・アップサンプリング：低い頻度から高い頻度
+          
+        ・頻度変換はresampleメソッドをつかう
+        ・resampleはgroupbyと似たAPIを持っており、グループ化した後、集約関数を呼べる 
+               ts.resample('M').mean()
+               ts.resample('M', kind='period').mean()
+               
+          ■resampleメソッドの引数
+              ・freq: 再サンプリング頻度を示す文字列 or 日付オフセット　例；'M','5min'
+              ・axis: 再サンプリング対象軸。デフォルトはaxis=0
+              ・fill_method: アップサンプリングの時の穴埋め方法、ffill,bfill デフォルトでは穴埋めしない
+              ・closed: ダウンサンプリングのとき、どちらの端のデータをうめるか、right,left
+              ・label: ダウンサンプリングのとき結果に対してどうラベルをつけるか　right,left
+              ・loffset: ラベルに対する時間調整を行う　例：集約結果のラベルを1秒早めるには'-1s'
+              ・limit: 前方や後方に穴埋めを行う際の穴埋めを行う最大期間
+              ・kind: 期間に集約は'period'、タイムスタンプに集約は'timestamp'
+              ・convention: 期間を再サンプリングする場合、低→高頻度に変換するときの開始と終了の扱いを'start'と'end'で指定。デフォルトはend               
+               
+■ダウンサンプリング               
+          ・5分頻度のデータに集約               
+               ts.resample('5min').sum()   デフィルトでは左のビン境界が閉区間
+               
+          ・右側を閉区間にするにはcolsed='right'               
+               ts.resample('5min', closed='right').sum()
+               
+          ・右側のラベル境界を使うにはlabel='right'               
+               ts.resample('5min', closed='right', label='right').sum()
+               
+          ・結果のindexを一定量シフトさせた場合はloffsetに文字列か日付オフセットを入れる               
+               ts.resample('5min', closed= 'right', label= 'right', loffset= '-1s').sum()
+               
+■Open-High-Low-Close(OHLC)再サンプリング               
+          ・金融などで最初の値(open),最後の値(close),最大値(high),最小値(low)で集約する
+               ts.resample('5min').ohlc()   
+               
+■アップサンプリングと穴埋め               
+          ・asfreqメソッドで高い頻度へ変換すると、データがない日付はNaNとなる               
+               
+          ・データを前方に穴埋めしたい場合               
+               frame.resample('D').ffill()
+               
+          ・前方に一定の数だけ穴埋めする               
+               frame.resample('D').ffill(limit=2)
+               
+■期間で再サンプリングする               
+          ・期間サンプリングでのルール
+               ・ダウンサンプリングにおいて、変更後の頻度は、変更前の頻度に基づいた長い期間でなければならない
+               ・アップサンプリングにおいて、変更後の頻度は、変更前の頻度に基づいた短い期間でなければならない
+               
+   11.6 移動する窓関数               
+         ・rollingメソッドで移動平均を計算できる               
+               close_px.AAPL.rolling(250).mean().plot()
+               
+         ・拡大する窓関数の平均にはexpandingをつかう 
+               apple_std250.expanding().mean()
+         
+■指数加重関数         
+          ・ewmでより最近の観測値を強く重みつけする
+               ma60 = appl_px.rolling(30, min_periods=20).mean()
+               ewma60 = appl_px.ewm(span=30).mean()
+          
+「12章」Pandas:応用編 P395           
+   12.1 カテゴリ型データ          
+         ・takeメソッドで整数値のキーのシリーズテータを元に文字のシリーズに出来る
+               values = pd.Series([0,1,0,0] *2)
+               dim = pd.Series(['apple', 'orange'])
+               
+               dim.take(values)
+          
+■pandasにおけるカテゴリ型
+         ・pandasにはCategoricalという特殊な型がある
+
+         ・astypeメソッドでカテゴリ型へ変換出来る
+               df['fruit'].astype('category')
+
+         ・Categoricalオブジェクトはcategoriesとcodesの２つの属性を持つ
+           categoreisはカテゴリの情報を保持、codesはデータのコードによる表現を保持
+               df['fruit'].astype('category').categories
+               df['fruit'].astype('category').code
+               
+         ・他の型のPythonシーケンスからpandas.Categoricalに直接変換可能               
+               pd.Categorical(['foo', 'bar', 'baz', 'foo', 'bar'])
+               
+         ・既にカテゴリ型にエンコードされたデータを読み込む方法               
+               categories = ['foo', 'bar', 'baz']
+               codes = [0,1,2,0,0,1]
+               my_cats_2 = pd.Categorical.from_codes(codes, categories)
+
+         ・カテゴリに大小関係の意味を指定する場合
+               pd.Categorical.from_codes(codes, categories, ordered=True)
+               
+         ・as_orderedメソッドを使うと大小関係が設定されていないインスタンスを変更出来る               
+               my_cats_2.as_ordered()
+               
+■カテゴリを用いた計算と処理性能の改善
+         ・groupbyメソッドなどカテゴリ型を用いた方が処理速度が上がる 
+         ・大量の分析をする場合、カテゴリ変数に変換する事でメモリ使用量が大幅に抑えられる
+         
+■カテゴリメソッド         
+         ・カテゴリメソッドはcatという特殊属性でアクセスする
+         ・既存のカテゴリを新たに変更したい場合はset_categories
+               cat_s.cat.set_categories(actual_categories)
+
+          ■pandasのシリーズで利用可能なカテゴリメソッド
+              ・add_categories: 既存のカテゴリの後ろに新たなカテゴリを追加する
+              ・as_orderd: カテゴリ間に大小関係が設定されたものとして扱う
+              ・as_unordered: カテゴリ間に大小関係が設定されていないものとして扱う
+              ・remove_categories: 指定されたカテゴリを取り除き、その値が設定されていた要素に欠損値を設定する
+              ・remove_unused_categories: データに含まれないカテゴリを削除する
+              ・rename_categories: カテゴリ名のセットを指定された新たなセットに入れ替える
+              ・reorder_categories: reneme_categories + カテゴリ間の大小関係設定
+              ・set_categories: rename_categories　+　その際にカテゴリの追加・削除がOK
+              
+   12.2 グループ演算の使い方：応用編
+■グループの変換とGroupByの分解              
+         ・tarnsformメソッドで入力グループと同じ形状の集計結果が得られる
+               g.transform(lambda x: x.mean()) 
+               g.transform('mean')
+               
+■時系列データの再サンプリングを伴うグループ化     
+         ・resampleの他に別のキーと合わせて、再サンプリングを行いたい場合、pd.Groperを使う
+         ・pd.Groperを使う制約はグループ化を行う時刻がindexになっていなければいけない
+               time_key = pd.Grouper(freq='5min')
+               resampled = (df2.set_index('time').groupby(['key', time_key])).sum()
+
+   12.3 メソッドチェーンを行う為のテクニック
+         ・assignメソッドは引数として与えられた変更結果を新たなデータフレームに戻す
+               df2 = df.assign(k=v)    
+               
+         ・pipeメソッド
+
+「14章」データ分析の実例
+   14.1
+
+         ・リストに含まれるデータのカテゴリと数を数える
+               def get_counts(sequence):
+                   counts = {}
+                   for x in sequence:
+                       if x in counts:
+                           counts[x] +=1
+                       else:
+                           counts[x] = 1
+                   return counts  
+                   
+                          
+         ・標準ライブラリのdefaltdictをつかうと簡単に集計出来る
+               from collections import defaultdict
+
+               def get_counts2(sequence):
+                   counts = defaultdict(int)
+                   
+                   for x in sequence:
+                       counts[x] +=1
+                   return counts
+                                         
+         ・標準ライブラリのcollection.Counterを使うとリストで共通カテゴリの多い順を表示できる
+               from collections import Counter
+               counts = Counter(time_zones)
+               counts.most_common(10)
+               
+         ・pandasのargsort()を使うと、ソート結果のインデックス番号を戻す               
+               indexer = agg_counts.sum(1).argsort()
+               
+           得れらたinedexerから末尾10件を取得する場合    
+               count_subset = agg_counts.take(indexer[-10:])  
+               
+         ・pandasのnlargestを使うと指定した上位のデータを取り出せる
+               agg_counts.sum(1).nlargest(10) 
+               
+   14.2 MovieLens 1M(映画評価データ)
+         ・データを逆順に並べて最初の10件を表示する   
+               sorted_by_diff[::-1][:10]
+               
+   14.3 アメリカの赤ちゃんに名付けられた名前リスト(1880-2010)               
+         ・同様なファイルを一気に開いてデータフレームにまとめる
+               years = range(1880, 2011)
+               pieces = []
+               columns = ['name', 'sex', 'births']
+
+               for year in years:
+                   path = 'pydata-book-2nd-edition/datasets/babynames/yob{}.txt'.format(year)
+                   frame = pd.read_csv(path, names=columns)
+                   
+                   frame['year'] = year
+                   pieces.append(frame)  ※ここで巨大なリストを作成する
+
+               # オリジナルの行番行が不要の為indexを無視    
+               names = pd.concat(pieces, ignore_index=True)
+               
+         ・Numpyのsertchsortedをつかうと配列要素の探索が出来る
+           例：累積和が0.5を超えるインデックス
+               df.sort_values(by='prop', ascending=False).prop.cumsum()                  
+               prop_cumsum.values.searchsorted(0.5) 
+               
+   14.4 アメリカ合衆国農務省の食糧データベース
+         ・巨大な辞書データから特定カラムを取り出し巨大な表にまとめる                      
+               nutrients= []
+
+               for rec in db:
+                   fnuts = pd.DataFrame(rec['nutrients'])
+                   fnuts['id'] = rec['id']
+                   nutrients.append(fnuts)  
+                   
+               nutrients = pd.concat(nutrients, ignore_index=True)
+               
+         ・idmax(),idmin()      
+               
+   14.5 2012年度連邦選挙委員会データベース 
+         ・dict.get(k,d)はdictにkのエントリがあればそれを返し、なければdを返す                                                                 
